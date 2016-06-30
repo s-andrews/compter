@@ -49,6 +49,7 @@ sub process_file {
 				if (/>(\S+)/) {
 						my $next_name = $1;
 						if ($seq) {
+								warn "Analysing $id\n";
 								push @seqdata,calculate_enrichment($seq);
 								push @seqnames,$id;
 						}
@@ -101,6 +102,9 @@ sub calculate_enrichment {
 		
 		foreach my $kmer (@kmers) {
 				my $freq = $observed{$kmer} / $counts_per_size{length($kmer)};
+				if ($freq == 0) {
+						$freq = 0.5 / $counts_per_size{length($kmer)};
+				}
 				my $enrichment = log($freq/$background->{$kmer})/log(2);
 				push @enrichments,$enrichment;
 		}
