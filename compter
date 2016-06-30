@@ -8,7 +8,6 @@ my $gc;
 my $mink;
 my $maxk;
 
-
 unless (
 		GetOptions (
 				"help" => \$help,
@@ -29,53 +28,132 @@ unless ($file) {
 		die "Usage is compter [fasta_file_name]\nRun comter --help for more options\n";
 }
 
-# Check GC settings
-if ($gc) {
-		unless ($gc =~ /^\d+$/) {
-				die "GC value $gc wasn't an integer";
-		}
-
-		if ($gc < 20 or $gc > 80) {
-				die "GC must be in the range 20-80%";
-		}
-}
-else {
-		$gc = 50;
-}
-
-# Check kmer range
-if ($mink) {
-		unless ($mink =~ /^\d+$/) {
-				die "MinK $mink wasn't an integer";
-		}
-		if ($mink < 1 or $mink > 3) {
-				die "MinK must be in the range 1-3%";
-		}
-}
-else {
-		$mink = 1;
-}
-
-if ($maxk) {
-		unless ($maxk =~ /^\d+$/) {
-				die "Maxk $maxk wasn't an integer";
-		}
-		if ($maxk < 1 or $maxk > 3) {
-				die "Maxk must be in the range 1-3%";
-		}
-}
-else {
-		$maxk = 3
-}
-
-if ($maxk < $mink) {
-		die "MaxK value ($maxk) was lower than MinK value ($mink)\n";
-}
-
+check_arguments();
 my $background = make_background();
 
+process_file ($file);
 
 
+sub process_file {
+
+		my @seqdata;
+		my @seqnames;
+
+		my $id;
+		my $seq;
+
+		open (IN,$file) or die "Can't read $file: $!";
+
+		while (<IN>) {
+
+				if (/>(\S+)/) {
+						my $next_name = $1;
+						if ($seq) {
+								push @seqdata,calculate_enrichment($seq);
+								push @seqnames,$id;
+						}
+						$seq = "";
+						$id = $next_name;
+				}
+				else {
+						s/[\r\n]//g;
+						next unless ($_);
+
+						$seq .= uc($_);
+				}				
+		}
+
+		if ($seq) {
+				push @seqdata,calculate_enrichment($seq);
+				push @seqnames,$id;
+		}
+
+		close IN;
+
+}
+
+sub calculate_enrichment {
+
+		my ($seq) = @_;
+
+		my @kmers = sort keys %$background;
+
+		my %observed;
+
+		foreach my $kmer(@kmers) {
+				$observed{$kmer} = 0;
+		}
+
+		my %counts_per_size;
+
+		for my $size ($mink..$maxk) {
+
+				foreach my $start (0..(length($seq)-($size+1))) {
+						my $kseq = substr($seq,$start,$size);
+						next unless (exists $observed{$kseq});
+						++$counts_per_size{$size};
+						++$observed{$kseq};
+
+				}
+		}
+
+		my @enrichments;
+		
+		foreach my $kmer (@kmers) {
+				my $freq = $observed{$kmer} / $counts_per_size{length($kmer)};
+				my $enrichment = log($freq/$background->{$kmer})/log(2);
+				push @enrichments,$enrichment;
+		}
+		
+		return \@enrichments;
+
+}
+
+
+sub check_arguments {
+    # Check GC settings
+		if ($gc) {
+				unless ($gc =~ /^\d+$/) {
+						die "GC value $gc wasn't an integer";
+				}
+
+				if ($gc < 20 or $gc > 80) {
+						die "GC must be in the range 20-80%";
+				}
+		}
+		else {
+				$gc = 50;
+		}
+
+    # Check kmer range
+		if ($mink) {
+				unless ($mink =~ /^\d+$/) {
+						die "MinK $mink wasn't an integer";
+				}
+				if ($mink < 1 or $mink > 3) {
+						die "MinK must be in the range 1-3%";
+				}
+		}
+		else {
+				$mink = 1;
+		}
+
+		if ($maxk) {
+				unless ($maxk =~ /^\d+$/) {
+						die "Maxk $maxk wasn't an integer";
+				}
+				if ($maxk < 1 or $maxk > 3) {
+						die "Maxk must be in the range 1-3%";
+				}
+		}
+		else {
+				$maxk = 3
+		}
+		
+		if ($maxk < $mink) {
+				die "MaxK value ($maxk) was lower than MinK value ($mink)\n";
+		}
+}
 
 sub make_background {
 
