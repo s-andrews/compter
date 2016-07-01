@@ -2,11 +2,14 @@
 use warnings;
 use strict;
 use Getopt::Long;
+$|++;
 
 my $help;
 my $gc;
 my $mink;
 my $maxk;
+my $maxseq;
+my $outfile;
 
 unless (
 		GetOptions (
@@ -14,6 +17,8 @@ unless (
 				"gc=i"   => \$gc,
 				"mink=i"  => \$mink,
 				"maxk=i" => \$maxk,
+				"maxseq=i" => \$maxseq,
+				"outfile=s" => \$outfile,
 		)
 		) {die "Failed to parse options\n";}
 
@@ -44,12 +49,24 @@ sub process_file {
 
 		open (IN,$file) or die "Can't read $file: $!";
 
+		my $count = 0;
+
 		while (<IN>) {
 
 				if (/>(\S+)/) {
 						my $next_name = $1;
 						if ($seq) {
-								warn "Analysing $id\n";
+								++$count;
+
+								if ($count % 100 == 0) {
+										print ".";
+								}
+
+								if ($count == $maxseq) {
+										warn "Reached maxseq limit of $maxseq: stopping early\n";
+										last;
+								}
+
 								push @seqdata,calculate_enrichment($seq);
 								push @seqnames,$id;
 						}
@@ -70,6 +87,28 @@ sub process_file {
 		}
 
 		close IN;
+
+
+
+		open (OUT, '>', $outfile) or die "Failed to write to '$outfile': $!";
+
+		# Write the header first...
+
+		print OUT join("\t",("Kmer",@seqnames)),"\n";
+
+		my @kmer_names = sort keys %$background;
+
+		foreach my $index (0..$#kmer_names) {
+				my @line = $kmer_names[$index];
+
+				foreach my $sample (@seqdata) {
+						push @line,$sample->[$index];
+				}
+
+				print OUT join("\t",@line),"\n";
+		}
+
+		close OUT or die "Failed to write to outfile: $!";
 
 }
 
@@ -157,6 +196,30 @@ sub check_arguments {
 		if ($maxk < $mink) {
 				die "MaxK value ($maxk) was lower than MinK value ($mink)\n";
 		}
+
+		# Maxseq
+		if ($maxseq) {
+				unless ($maxseq =~ /^\d+$/) {
+						die "Maxseq $maxseq wasn't an integer";
+				}
+				if ($maxseq < 1) {
+						die "Maxk must be 1 or more";
+				}
+		}
+		else {
+				$maxseq = 1000;
+		}
+		
+
+		# Outfile
+		unless ($outfile) {
+				$outfile = $file;
+				$outfile =~ s/(\.fa|\.fasta|\.fna)$//i;
+
+				$outfile .= "_compter.txt";
+		}
+
+
 }
 
 sub make_background {
