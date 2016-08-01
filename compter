@@ -27,20 +27,38 @@ if ($help) {
 		exit;
 }
 
-my ($file) = @ARGV;
+my @files = @ARGV;
 
-unless ($file) {
-		die "Usage is compter [fasta_file_name]\nRun comter --help for more options\n";
+unless ($outfile and @files) {
+		die "Usage is compter --outfile [outfile] [fasta_file1].. [fastq_file_x]\nRun comter --help for more options\n";
 }
 
 check_arguments();
 my $background = make_background();
 
-process_file ($file);
+open (OUT, '>', $outfile) or die "Failed to write to '$outfile': $!";
+
+# Write the header first...
+
+my @kmer_names = sort keys %$background;
+
+print OUT join("\t",("Sequence","File",@kmer_names)),"\n";
+
+
+foreach my $file (@files) {
+		process_file ($file);
+}
+
+
+close OUT or die "Couldn't write to $outfile: $!";
 
 
 sub process_file {
 
+		my ($file) = @_;
+
+		warn "Processing $file\n";
+		
 		my @seqdata;
 		my @seqnames;
 
@@ -88,27 +106,20 @@ sub process_file {
 
 		close IN;
 
-
-
-		open (OUT, '>', $outfile) or die "Failed to write to '$outfile': $!";
-
-		# Write the header first...
-
-		print OUT join("\t",("Kmer",@seqnames)),"\n";
-
 		my @kmer_names = sort keys %$background;
 
-		foreach my $index (0..$#kmer_names) {
-				my @line = $kmer_names[$index];
+		foreach my $sample_index (0..$#seqnames) {
+				my @line = ($seqnames[$sample_index],$file);
 
-				foreach my $sample (@seqdata) {
+				my $sample = $seqdata[$sample_index];
+
+				foreach my $index (0..$#kmer_names) {
 						push @line,$sample->[$index];
 				}
 
 				print OUT join("\t",@line),"\n";
 		}
 
-		close OUT or die "Failed to write to outfile: $!";
 
 }
 
@@ -213,10 +224,7 @@ sub check_arguments {
 
 		# Outfile
 		unless ($outfile) {
-				$outfile = $file;
-				$outfile =~ s/(\.fa|\.fasta|\.fna)$//i;
-
-				$outfile .= "_compter.txt";
+				die "Output file (--outfile) wasn't specified\n";
 		}
 
 
