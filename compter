@@ -85,8 +85,14 @@ sub process_file {
 										last;
 								}
 
-								push @seqdata,calculate_enrichment($seq);
-								push @seqnames,$id;
+								if (length($seq) < $maxk) {
+										warn "Skipping $id in $file as it's too short (".length($seq).")\n";
+								}
+
+								else {
+										push @seqdata,calculate_enrichment($seq);
+										push @seqnames,$id;
+								}
 						}
 						$seq = "";
 						$id = $next_name;
@@ -100,8 +106,14 @@ sub process_file {
 		}
 
 		if ($seq) {
-				push @seqdata,calculate_enrichment($seq);
-				push @seqnames,$id;
+				if (length($seq) < $maxk) {
+						warn "Skipping $id in $file as it's too short (".length($seq).")\n";
+				}
+
+				else {
+						push @seqdata,calculate_enrichment($seq);
+						push @seqnames,$id;
+				}
 		}
 
 		close IN;
