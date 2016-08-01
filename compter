@@ -2,6 +2,7 @@
 use warnings;
 use strict;
 use Getopt::Long;
+use Cwd;
 $|++;
 
 my $help;
@@ -51,6 +52,68 @@ foreach my $file (@files) {
 
 
 close OUT or die "Couldn't write to $outfile: $!";
+
+draw_heatmap($outfile);
+
+
+
+sub draw_heatmap {
+		
+		my ($infile) = @_;
+		my $dir = getcwd;
+		my $outfile = $infile;
+		$outfile =~ s/\.txt$//;
+		$outfile .= ".png";
+
+
+		my $r_script = <<"END_SCRIPT";
+directory <- "$dir"
+file <- "test.txt"
+outfile <- "test.png"
+
+setwd(directory)
+library(pheatmap)
+
+read.delim(file,check.names=FALSE, stringsAsFactors=FALSE) -> compter.data
+
+compter.data[[2]] -> group.names
+
+
+as.data.frame(t(compter.data[,3:ncol(compter.data)])) -> compter.data
+data.frame(Var1=group.names) -> group.annotation
+rownames(group.annotation) <- colnames(compter.data)
+
+max.value = max(compter.data)
+min.value = min(0-compter.data)
+
+if (max.value > min.value) {
+  max.value = min.value
+  min.value = 0-min.value
+} else {
+  min.value = 0-max.value
+}
+
+png(filename = outfile,width = 900, height = 900)
+pheatmap(compter.data,
+         annotation=group.annotation,
+         show_colnames=FALSE,
+         main=file,
+         breaks=seq(from=min.value,to=max.value,length.out=50),
+         color=colorRampPalette(c("magenta","white","green"))(50),
+         border.color = NA)
+dev.off()
+
+END_SCRIPT
+
+open (IN, "| R --no-save") or die "Can't open pipe to R";
+
+		print IN $r_script;
+
+		close IN or die "Can't write to R pipe";
+
+
+}
+
 
 
 sub process_file {
