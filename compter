@@ -68,8 +68,8 @@ sub draw_heatmap {
 
 		my $r_script = <<"END_SCRIPT";
 directory <- "$dir"
-file <- "test.txt"
-outfile <- "test.png"
+file <- "$infile"
+outfile <- "$outfile"
 
 setwd(directory)
 library(pheatmap)
@@ -353,3 +353,21 @@ sub make_background {
 
 
 __DATA__
+
+    COMPTER - Comparative visualisation of sequence composition
+
+PURPOSE
+-------
+Compter is a program which takes in one or more multi-fasta format DNA
+sequence files and produces both text and graphical outputs summarising
+the contents of the files.  It can be used to look for overall compositional
+differences between samples, or to look for compositional sub-groups within
+a single sequence set.
+
+USAGE
+-----
+
+compter [options] [file1] [file2] [file n]
+
+
+
