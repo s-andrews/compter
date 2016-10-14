@@ -5,4 +5,4 @@ The program divides your sequences into Kmers - short subsequences of a fixed le
 
 The program then plots the results for all sequences as a heatmap, and annotates this with any sequence groupings you've provided so you can see to what extent the groups you have are explained by sequence composition.
 
-![Example compter plot](/test/test.png)
+![Example compter plot](https://raw.githubusercontent.com/s-andrews/compter/master/test/example.png)
