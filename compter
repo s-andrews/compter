@@ -3,6 +3,7 @@ use warnings;
 use strict;
 use Getopt::Long;
 use Cwd;
+use FindBin qw($Bin);
 $|++;
 
 my $help;
@@ -11,6 +12,9 @@ my $mink;
 my $maxk;
 my $maxseq;
 my $outfile;
+my $bg_option;
+my $save_background;
+
 
 unless (
 		GetOptions (
@@ -20,6 +24,8 @@ unless (
 				"maxk=i" => \$maxk,
 				"maxseq=i" => \$maxseq,
 				"outfile=s" => \$outfile,
+				"background=s" => \$bg_option,
+				"save_background=s" => \$save_background,
 		)
 		) {die "Failed to parse options\n";}
 
@@ -54,8 +60,6 @@ foreach my $file (@files) {
 close OUT or die "Couldn't write to $outfile: $!";
 
 draw_heatmap($outfile);
-
-
 
 sub draw_heatmap {
 		
@@ -198,29 +202,57 @@ sub process_file {
 
 }
 
+sub get_observed_kmers {
+		my ($seq,$min,$max) = @_;
+
+		my %observed;
+
+		for my $size ($min..$max) {
+				foreach my $start (0..(length($seq)-($size+1))) {
+						my $kseq = substr($seq,$start,$size);
+						++$observed{$kseq};
+				}
+		}
+
+		return %observed;
+}
+
+sub get_valid_kmers {
+		my @kmers = sort keys %$background;
+
+		my @valid;
+
+		foreach my $kmer (@kmers) {
+				if (length($kmer) >= $mink and length($kmer) <= $maxk) {
+						push @valid,$kmer;
+				}
+
+		}
+
+		return @valid;
+
+}
+
 sub calculate_enrichment {
 
 		my ($seq) = @_;
 
-		my @kmers = sort keys %$background;
+		my @kmers = get_valid_kmers();
 
-		my %observed;
-
-		foreach my $kmer(@kmers) {
-				$observed{$kmer} = 0;
-		}
+		my %raw_observed = get_observed_kmers($seq,$mink,$maxk);
 
 		my %counts_per_size;
 
-		for my $size ($mink..$maxk) {
+		my %observed;
 
-				foreach my $start (0..(length($seq)-($size+1))) {
-						my $kseq = substr($seq,$start,$size);
-						next unless (exists $observed{$kseq});
-						++$counts_per_size{$size};
-						++$observed{$kseq};
+		foreach my $kmer (@kmers) {
+				$observed{$kmer} = 0;
+		}
 
-				}
+		foreach my $kmer (keys %raw_observed) {
+				next unless (exists $observed{$kmer});
+				$observed{$kmer} = $raw_observed{$kmer};
+				$counts_per_size{length{$kmer}} += $raw_observed{$kmer};
 		}
 
 		my @enrichments;
@@ -302,16 +334,198 @@ sub check_arguments {
 				die "Output file (--outfile) wasn't specified\n";
 		}
 
-
 }
 
 sub make_background {
 
-		my %freqs;
+		# We do different things depending on what type of background we're making
+
+		if ($bg_option) {
+				# The background can be one of 3 different things
+				# 1) A fasta file to compute the background from
+				# 2) A pre-calculated compter file
+				# 3) The name of a pre-calculated background which exists in the backgrounds folder
+
+				if ($bg_option =~ /\.cmp$/) {
+						# It's a compter file
+						_make_compter_background($bg_option);
+				}
+				elsif (-e "$Bin/backgrounds/${background}.cmp") {
+						# It's a pre-calculated background
+						return(_make_compter_background("$Bin/backgrounds/${background}.cmp"));
+				}
+				elsif (-e $bg_option) {
+						# We assume it's a fasta file
+						return(_make_fasta_background($bg_option))
+				}
+				else {
+						die "Couldn't figure out how to make a background from '$bg_option'";
+				}
+
+		}
+
+		else {
+				return(_make_gc_background());
+		}
+
+}
+
+sub _make_fasta_background {
+
+		my ($file) = @_;
+
+		my $min_used_length = $mink;
+		my $max_used_length = $maxk;
+
+
+		# If we're saving this we need to calculate the full range
+		# we'll ever use - even if we're not using it this time.
+		if ($save_background) {
+				$min_used_length = 1;
+				$max_used_length = 3;
+		}
+
+
+		my %kmer_counts;
+		my %counts_per_length;
 
 		my @letters = qw(G A T C);
 
-		my @kmers;
+		for my $kmer ($min_used_length..$max_used_length) {
+#				warn "Looking at kmer length $kmer\n";
+				my @kmers = @letters;
+				for (0..($kmer-2)) {
+						my @expanded;
+						foreach my $existing (@kmers) {
+								foreach my $letter (@letters) {
+										push @expanded,"$existing$letter";
+								}
+						}
+						@kmers = @expanded;
+				}
+
+				foreach my $kmer (@kmers) {
+						$kmer_counts{$kmer} = 0;
+				}
+		}
+
+
+		# Now we can read the file and calculate the frequencies
+		# of the kmers within it
+
+		open (my $SEQ,$file) or die "Can't read sequence file '$file': $!";
+
+		my $seq;
+		while (<$SEQ>) {
+				s/[\r\n\s]//g;
+				if (/^>/) {
+						# We're at the start of a new sequence
+						if ($seq) {
+								my %k = get_observed_kmers($seq,$min_used_length,$max_used_length);
+
+								foreach my $kmer (keys %k) {
+										if (exists $kmer_counts{$kmer}) {
+												$kmer_counts{$kmer} += $k{$kmer};
+												$counts_per_length{length($kmer)} += $k{$kmer};
+										}
+								}
+								$seq = "";
+						}
+				}
+				else {
+						$seq .= $_;
+				}
+		}
+
+		close $SEQ;
+
+		# Process the last sequence
+		my %k = get_observed_kmers($seq,$min_used_length,$max_used_length);
+
+		foreach my $kmer (keys %k) {
+				if (exists $kmer_counts{$kmer}) {
+						$kmer_counts{$kmer} += $k{$kmer};
+						$counts_per_length{length($kmer)} += $k{$kmer};
+				}
+		}
+
+		# Change the absolute values into frequencies
+
+		foreach my $kmer (keys %kmer_counts) {
+
+				$kmer_counts{$kmer} /= $counts_per_length{length($kmer)};
+
+		}
+
+		# Save the file if we need to
+		if ($save_background) {
+				open (my $BG,'>',$save_background) or die "Can't write to '$save_background': $!";
+
+				foreach my $kmer (sort keys %kmer_counts) {
+						print $BG join("\t",$kmer,$kmer_counts{$kmer}),"\n";
+				}
+
+		}
+
+		return \%kmer_counts;
+
+
+}
+
+sub _make_compter_background {
+
+		my ($file) = @_;
+
+
+		# A compter background file is simply a 2 column delimited file
+		# of kmer vs frequency.  We need to keep a record of the range of
+		# lengths that we've seen to ensure that we've covered what we
+		# need for the analysis.
+
+		my $min_length_seen;
+		my $max_length_seen;
+
+		open (my $COM, $file) or die "Can't read '$file': $!";
+
+		my %freqs;
+
+		while (<IN>) {
+				s/[\r\n]//g;
+
+				my ($kmer,$freq) = split(/\t/);
+
+				my $length = length($kmer);
+
+				unless (defined $min_length_seen) {
+						$min_length_seen = $length;
+						$max_length_seen = $length;
+				}
+
+				$max_length_seen = $length if ($length > $max_length_seen);
+				$min_length_seen = $length if ($length < $min_length_seen);
+
+				if (exists $freqs{$kmer}) {
+						die "Duplicate frequency found in '$file' for '$kmer'";
+				}
+
+				$freqs{$kmer} = $freq;
+
+		}
+
+		close $COM;
+
+		die "Background provided doesn't cover length '$mink'" if ($min_length_seen > $mink);
+		die "Background provided doesn't cover length '$maxk'" if ($max_length_seen < $maxk);
+
+		return \%freqs;
+}
+
+
+sub _make_gc_background {
+
+		my %freqs;
+
+		my @letters = qw(G A T C);
 
 		for my $kmer ($mink..$maxk) {
 #				warn "Looking at kmer length $kmer\n";
