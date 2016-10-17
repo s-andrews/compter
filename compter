@@ -14,6 +14,8 @@ my $maxseq;
 my $outfile;
 my $bg_option;
 my $save_background;
+my $quiet;
+my $nograph;
 
 
 unless (
@@ -26,6 +28,8 @@ unless (
 				"outfile=s" => \$outfile,
 				"background=s" => \$bg_option,
 				"savebg=s" => \$save_background,
+				"quiet" => \$quiet,
+				"nograph" => \$nograph,
 		)
 		) {die "Failed to parse options\n";}
 
@@ -47,7 +51,7 @@ open (OUT, '>', $outfile) or die "Failed to write to '$outfile': $!";
 
 # Write the header first...
 
-my @kmer_names = sort keys %$background;
+my @kmer_names = get_valid_kmers();
 
 print OUT join("\t",("Sequence","File",@kmer_names)),"\n";
 
@@ -59,7 +63,9 @@ foreach my $file (@files) {
 
 close OUT or die "Couldn't write to $outfile: $!";
 
-draw_heatmap($outfile);
+if (!$nograph) {
+		draw_heatmap($outfile);
+}
 
 sub draw_heatmap {
 		
@@ -119,12 +125,11 @@ open (IN, "| R --no-save") or die "Can't open pipe to R";
 }
 
 
-
 sub process_file {
 
 		my ($file) = @_;
 
-		warn "Processing $file\n";
+		$quiet or warn "Processing $file\n";
 		
 		my @seqdata;
 		my @seqnames;
@@ -148,12 +153,12 @@ sub process_file {
 								}
 
 								if ($count == $maxseq) {
-										warn "Reached maxseq limit of $maxseq: stopping early\n";
+										$quiet or warn "Reached maxseq limit of $maxseq: stopping early\n";
 										last;
 								}
 
 								if (length($seq) < $maxk) {
-										warn "Skipping $id in $file as it's too short (".length($seq).")\n";
+										$quiet or warn "Skipping $id in $file as it's too short (".length($seq).")\n";
 								}
 
 								else {
@@ -185,7 +190,7 @@ sub process_file {
 
 		close IN;
 
-		my @kmer_names = sort keys %$background;
+		my @kmer_names = get_valid_kmers();
 
 		foreach my $sample_index (0..$#seqnames) {
 				my @line = ($seqnames[$sample_index],$file);
@@ -252,7 +257,7 @@ sub calculate_enrichment {
 		foreach my $kmer (keys %raw_observed) {
 				next unless (exists $observed{$kmer});
 				$observed{$kmer} = $raw_observed{$kmer};
-				$counts_per_size{length{$kmer}} += $raw_observed{$kmer};
+				$counts_per_size{length($kmer)} += $raw_observed{$kmer};
 		}
 
 		my @enrichments;
@@ -350,7 +355,7 @@ sub make_background {
 						# It's a compter file
 						_make_compter_background($bg_option);
 				}
-				elsif (-e "$Bin/backgrounds/${background}.cmp") {
+				elsif (-e "$Bin/backgrounds/${bg_option}.cmp") {
 						# It's a pre-calculated background
 						return(_make_compter_background("$Bin/backgrounds/${background}.cmp"));
 				}
@@ -374,6 +379,8 @@ sub _make_fasta_background {
 
 		my ($file) = @_;
 
+		$quiet or warn "Calculating background from sequences in $file\n";
+
 		my $min_used_length = $mink;
 		my $max_used_length = $maxk;
 
@@ -384,7 +391,6 @@ sub _make_fasta_background {
 				$min_used_length = 1;
 				$max_used_length = 3;
 		}
-
 
 		my %kmer_counts;
 		my %counts_per_length;
@@ -476,6 +482,7 @@ sub _make_compter_background {
 
 		my ($file) = @_;
 
+		$quiet or warn "Reading background from $file\n";
 
 		# A compter background file is simply a 2 column delimited file
 		# of kmer vs frequency.  We need to keep a record of the range of
@@ -489,7 +496,7 @@ sub _make_compter_background {
 
 		my %freqs;
 
-		while (<IN>) {
+		while (<$COM>) {
 				s/[\r\n]//g;
 
 				my ($kmer,$freq) = split(/\t/);
@@ -522,6 +529,8 @@ sub _make_compter_background {
 
 
 sub _make_gc_background {
+
+		$quiet or warn "Making a background based on %GC=$gc\n";
 
 		my %freqs;
 
@@ -631,3 +640,5 @@ OPTIONS
 
 --nograph          Skip the drawing of the heatmap and just calculate the table
                    of results.
+
+--quiet            Supress all progress messages
