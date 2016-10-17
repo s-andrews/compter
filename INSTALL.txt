@@ -1,0 +1,95 @@
+INSTALLING COMPTER
+------------------
+
+Dependencies
+------------
+
+Perl
+----
+Compter is written in Perl so you'll need to have a perl 
+installation to run it.  There's almost certainly one on
+any unix system you want to run this on already, but you
+can check by opening a shell and running:
+
+perl -V 
+
+If you don't have perl then you can install it through
+your system's package managed (yum, apt-get etc)
+
+
+Perl Modules
+------------
+Compter uses one non-core Perl module, which is the Cwd
+module.  You can install this with:
+
+perl -MCPAN -e 'install Cwd'
+
+..if it's not installed already.
+
+
+R language
+----------
+For the heatmap compter uses R to do the clustering and
+drawing.  You will therefore need a valid R installation
+to be able to use the full functionality of the program
+(you can run it using --nograph if you don't have R but
+you won't get the pretty picture).
+
+R is available from http://cran.r-project.org
+
+
+R packages
+----------
+
+Compter uses the pheatmap package in R to draw the heatmap.
+You will need to install this to get the program to work.
+
+To install pheatmap and any dependencies it requires simply
+open an R session and run:
+
+install.packages("pheatmap")
+
+
+Installing compter
+------------------
+
+Until there is an official release of compter we recommend
+installing by doing a checkout of the latest development
+version:
+
+git clone https://github.com/s-andrews/compter.git
+
+You will then need to either add the compter install directory
+into your path, or symlink (DON'T COPY) the compter program
+into a directory already in your path.
+
+
+Running the test data
+---------------------
+
+To check that compter is installed correctly and working, 
+move into the "test" directory in the compter install and
+run:
+
+compter -b mouse -o test.txt high_seqs.fa  low_seqs.fa
+
+You should see output like:
+
+Reading background from /bi/apps/compter/backgrounds/mouse.cmp
+Processing high_seqs.fa
+...
+Processing low_seqs.fa
+..
+Drawing heatmap
+
+..and you should create output files:
+
+test.txt and test.png
+
+
+Problems, Bugs etc
+------------------
+
+If you have any problems with the program please report them in the issue
+tracker on the github project page.  If you have any questions then please
+send them to simon.andrews@babraham.ac.uk
