@@ -14,6 +14,7 @@ my $maxseq;
 my $outfile;
 my $bg_option;
 my $save_background;
+my $bglist;
 my $quiet;
 my $nograph;
 
@@ -30,12 +31,40 @@ unless (
 				"savebg=s" => \$save_background,
 				"quiet" => \$quiet,
 				"nograph" => \$nograph,
+				"bglist" => \$bglist,
 		)
 		) {die "Failed to parse options\n";}
 
 if ($help) {
 		print while (<DATA>);
 		exit;
+}
+
+if ($help) {
+		print while (<DATA>);
+		exit;
+}
+
+if ($bglist) {
+		chdir "$Bin/backgrounds" or die "Can't move to backgrounds directory: $!";
+		my @backgrounds = <*.cmp>;
+
+		if (@backgrounds) {
+				warn "\nBackgrounds available\n---------------------\n";
+
+				foreach my $b (@backgrounds) {
+						$b =~ s/\.cmp$//;
+						warn "  $b\n";
+				}
+				warn "\n";
+		}
+
+		else {
+				warn "No pre-computed backgrounds found\n";
+		}
+
+		exit;
+
 }
 
 my @files = @ARGV;
@@ -45,6 +74,8 @@ unless ($outfile and @files) {
 }
 
 check_arguments();
+
+
 my $background = make_background();
 
 open (OUT, '>', $outfile) or die "Failed to write to '$outfile': $!";
@@ -621,6 +652,10 @@ OPTIONS
                       the .cmp extension, so if you specify "human" as
                       the background then a file called "human.cmp" must
                       exist in the backgrounds folder
+
+--bglist           List the names of the available pre-computed backgrouds 
+                   available in this installation of compter.  These backgrounds
+                   can be specified directly in the --background option
 
 -g --gc            If no background sequence exists for the analysis you want
                    to perform then you can use a theoretcial background based
