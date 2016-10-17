@@ -69,6 +69,8 @@ if (!$nograph) {
 
 sub draw_heatmap {
 		
+		$quiet or warn "Drawing heatmap\n";
+
 		my ($infile) = @_;
 		my $dir = getcwd;
 		my $outfile = $infile;
@@ -103,7 +105,10 @@ if (max.value > min.value) {
   min.value = 0-max.value
 }
 
-png(filename = outfile,width = 900, height = 900)
+png(filename = outfile,width = 900, height = 60+(12*nrow(compter.data)))
+
+dim(compter.data)
+
 pheatmap(compter.data,
          annotation=group.annotation,
          show_colnames=FALSE,
@@ -115,12 +120,11 @@ dev.off()
 
 END_SCRIPT
 
-open (IN, "| R --no-save") or die "Can't open pipe to R";
+open (IN, "| R --no-save > /dev/null 2>&1") or die "Can't open pipe to R";
 
 		print IN $r_script;
 
 		close IN or die "Can't write to R pipe";
-
 
 }
 
@@ -149,7 +153,7 @@ sub process_file {
 								++$count;
 
 								if ($count % 100 == 0) {
-										print ".";
+										print STDERR ".";
 								}
 
 								if ($count == $maxseq) {
@@ -187,6 +191,7 @@ sub process_file {
 						push @seqnames,$id;
 				}
 		}
+		print STDERR "\n";
 
 		close IN;
 
@@ -357,7 +362,7 @@ sub make_background {
 				}
 				elsif (-e "$Bin/backgrounds/${bg_option}.cmp") {
 						# It's a pre-calculated background
-						return(_make_compter_background("$Bin/backgrounds/${background}.cmp"));
+						return(_make_compter_background("$Bin/backgrounds/${bg_option}.cmp"));
 				}
 				elsif (-e $bg_option) {
 						# We assume it's a fasta file
