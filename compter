@@ -25,7 +25,7 @@ unless (
 				"maxseq=i" => \$maxseq,
 				"outfile=s" => \$outfile,
 				"background=s" => \$bg_option,
-				"save_background=s" => \$save_background,
+				"savebg=s" => \$save_background,
 		)
 		) {die "Failed to parse options\n";}
 
@@ -584,4 +584,50 @@ USAGE
 compter [options] [file1] [file2] [file n]
 
 
+OPTIONS
+-------
 
+-o --outfile
+
+-b --background    Specify the background against which enrichment will be
+                   calculated.  The value associated with this can be one 
+                   of three different things:
+
+                   1) A (multi) fasta DNA sequence file which will be read
+                      to calculate a background.  This can be saved for 
+                      future re-use using the --savebg option.
+
+                   2) A pre-calculated background file with a .cmp file 
+                      extension which was previously created with the
+                      --savebg option.
+
+                   3) A background name. This must match a corresponding
+                      file in the "backgrounds" folder of the compter
+                      installation.  The name must be supplied without
+                      the .cmp extension, so if you specify "human" as
+                      the background then a file called "human.cmp" must
+                      exist in the backgrounds folder
+
+-g --gc            If no background sequence exists for the analysis you want
+                   to perform then you can use a theoretcial background based
+                   solely around the GC content of the sequence.
+
+--mink             The minimum length of the kmers to be analysed.  Default 1.
+                   Valid values are 1,2 or 3.
+
+
+--maxk             The maximum length of the kmers to be analysed.  Default 3.
+                   Valid values are 1,2 or 3.
+
+--maxseq           The maximum number of sequences to be analysed.  This limits
+                   how many sequences from each individual file will be used for
+                   the calculation.  It\'s generally not a great idea to put 
+                   loads of sequences into this analysis as the graphs will not
+		               scale to very large sequence numbers.  Default 1000.
+
+-s --savebg        Specify a file name into which the currently calculated 
+                   background will be saved.  Only has any effect when --background
+                   is specified with a value which is a (multi) fasta file.
+
+--nograph          Skip the drawing of the heatmap and just calculate the table
+                   of results.
