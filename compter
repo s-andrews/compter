@@ -21,6 +21,7 @@ my $bglist;
 my $quiet;
 my $nograph;
 my $version;
+my $r_path = "R";
 
 
 unless (
@@ -37,6 +38,7 @@ unless (
 				"nograph" => \$nograph,
 				"bglist" => \$bglist,
 				"version" => \$version,
+				"rpath=s" => \$r_path,
 		)
 		) {die "Failed to parse options\n";}
 
@@ -156,11 +158,11 @@ dev.off()
 
 END_SCRIPT
 
-open (IN, "| R --no-save > /dev/null 2>&1") or die "Can't open pipe to R";
+open (IN, "| \"$r_path\" --no-save > /dev/null 2>&1") or die "Can't open pipe to '$r_path'  - do you need to set an rpath?";
 
 		print IN $r_script;
 
-		close IN or die "Can't write to R pipe";
+		close IN or die "Can't write to '$r_path' pipe  - do you need to set an rpath?";
 
 }
 
@@ -685,6 +687,9 @@ OPTIONS
 -s --savebg        Specify a file name into which the currently calculated 
                    background will be saved.  Only has any effect when --background
                    is specified with a value which is a (multi) fasta file.
+
+--rpath            Specify the full path to the R executable (not RScript or R.app)
+                   you want to use.  Required when R isn\'t in your path.
 
 --nograph          Skip the drawing of the heatmap and just calculate the table
                    of results.
