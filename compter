@@ -6,6 +6,9 @@ use Cwd;
 use FindBin qw($Bin);
 $|++;
 
+our $VERSION = "0.1.devel";
+
+
 my $help;
 my $gc;
 my $mink;
@@ -17,6 +20,7 @@ my $save_background;
 my $bglist;
 my $quiet;
 my $nograph;
+my $version;
 
 
 unless (
@@ -32,6 +36,7 @@ unless (
 				"quiet" => \$quiet,
 				"nograph" => \$nograph,
 				"bglist" => \$bglist,
+				"version" => \$version,
 		)
 		) {die "Failed to parse options\n";}
 
@@ -40,8 +45,8 @@ if ($help) {
 		exit;
 }
 
-if ($help) {
-		print while (<DATA>);
+if ($version) {
+		print "Compter version $VERSION\n\n";
 		exit;
 }
 
@@ -632,7 +637,10 @@ compter [options] [file1] [file2] [file n]
 OPTIONS
 -------
 
--o --outfile
+-o --outfile       [Required] The name of the file to write the text 
+                   based output to. If graphical output is produced then
+                   it will go into a file with this name, with .txt removed
+                   from the end and .png added.
 
 -b --background    Specify the background against which enrichment will be
                    calculated.  The value associated with this can be one 
@@ -672,7 +680,7 @@ OPTIONS
                    how many sequences from each individual file will be used for
                    the calculation.  It\'s generally not a great idea to put 
                    loads of sequences into this analysis as the graphs will not
-		               scale to very large sequence numbers.  Default 1000.
+                   scale to very large sequence numbers.  Default 1000.
 
 -s --savebg        Specify a file name into which the currently calculated 
                    background will be saved.  Only has any effect when --background
@@ -682,3 +690,5 @@ OPTIONS
                    of results.
 
 --quiet            Supress all progress messages
+
+-v --version       Print the version of compter being used, then exit.
