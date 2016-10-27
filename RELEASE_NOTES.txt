@@ -1,0 +1,6 @@
+RELEASE NOTES FOR v0.1
+----------------------
+
+This is the initial release of the software.  All major functions are
+present and the program works sucessfully on our test data and on 
+several other projects we've tried it on.  It's ready for wider testing.
