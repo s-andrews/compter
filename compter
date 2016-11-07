@@ -153,7 +153,7 @@ rownames(group.annotation) <- colnames(compter.data)
 max.value = max(compter.data)
 min.value = min(0-compter.data)
 
-if (max.value > min.value) {
+if (max.value < min.value) {
   max.value = min.value
   min.value = 0-min.value
 } else {
@@ -328,6 +328,7 @@ sub calculate_enrichment {
 						$freq = 0.5 / $counts_per_size{length($kmer)};
 				}
 				my $enrichment = log($freq/$background->{$kmer})/log(2);
+
 				push @enrichments,$enrichment;
 		}
 		
