@@ -1,3 +1,13 @@
+RELEASE NOTES FOR v0.1.1
+------------------------
+
+This is a bugfix release which fixes a display bug which caused the 
+scale bar on the heatmap to be reversed.  The calculated enrichment
+values in the text output were correct, but the values shown in the 
+plot were all inversed (enriched was shown as depleted and vice versa)
+
+
+
 RELEASE NOTES FOR v0.1
 ----------------------
 
