@@ -6,7 +6,7 @@ use Cwd;
 use FindBin qw($Bin);
 $|++;
 
-our $VERSION = "0.1.1";
+our $VERSION = "0.2.devel";
 
 #############################################################################
 #                                                                           #
@@ -39,6 +39,7 @@ my $quiet;
 my $nograph;
 my $version;
 my $r_path = "R";
+my $no_bg_correction = 0;
 
 
 unless (
@@ -324,12 +325,17 @@ sub calculate_enrichment {
 		
 		foreach my $kmer (@kmers) {
 				my $freq = $observed{$kmer} / $counts_per_size{length($kmer)};
-				if ($freq == 0) {
-						$freq = 0.5 / $counts_per_size{length($kmer)};
-				}
-				my $enrichment = log($freq/$background->{$kmer})/log(2);
+				unless ($no_bg_correction) {
+						if ($freq == 0) {
+								$freq = 0.5 / $counts_per_size{length($kmer)};
+						}
+						my $enrichment = log($freq/$background->{$kmer})/log(2);
 
-				push @enrichments,$enrichment;
+						push @enrichments,$enrichment;
+				}
+				else {
+						push @enrichments,$freq;
+				}
 		}
 		
 		return \@enrichments;
@@ -407,12 +413,19 @@ sub make_background {
 		# We do different things depending on what type of background we're making
 
 		if ($bg_option) {
-				# The background can be one of 3 different things
+				# The background can be one of 4 different things
 				# 1) A fasta file to compute the background from
 				# 2) A pre-calculated compter file
 				# 3) The name of a pre-calculated background which exists in the backgrounds folder
+				# 4) The word 'none' which will mean we don't do any background correction
 
-				if ($bg_option =~ /\.cmp$/) {
+				if ($bg_option eq 'none') {
+						# We need to make the background data structure as this defines the kmers we're
+            # using, but we'll set a flag so it's not used
+						$no_bg_correction = 1;
+						return(_make_gc_background());
+				}
+				elsif ($bg_option =~ /\.cmp$/) {
 						# It's a compter file
 						_make_compter_background($bg_option);
 				}
@@ -591,7 +604,12 @@ sub _make_compter_background {
 
 sub _make_gc_background {
 
-		$quiet or warn "Making a background based on %GC=$gc\n";
+		if ($no_bg_correction) {
+				$quiet or warn "Not performing background correction\n";
+		}
+		else {
+				$quiet or warn "Making a background based on %GC=$gc\n";
+		}
 
 		my %freqs;
 
@@ -664,7 +682,7 @@ OPTIONS
 
 -b --background    Specify the background against which enrichment will be
                    calculated.  The value associated with this can be one 
-                   of three different things:
+                   of four different things:
 
                    1) A (multi) fasta DNA sequence file which will be read
                       to calculate a background.  This can be saved for 
@@ -680,6 +698,10 @@ OPTIONS
                       the .cmp extension, so if you specify "human" as
                       the background then a file called "human.cmp" must
                       exist in the backgrounds folder
+
+                   4) The name 'none' which will then calculate composition
+                      without any background correction and will just report
+                      proportional composition for each kmer in the output.
 
 --bglist           List the names of the available pre-computed backgrouds 
                    available in this installation of compter.  These backgrounds
