@@ -220,6 +220,11 @@ sub process_file {
 								if (length($seq) < $maxk) {
 										$quiet or warn "Skipping $id in $file as it's too short (".length($seq).")\n";
 								}
+								
+								# Check for enough valid sequence
+								elsif ($seq !~ /[GATC]{$maxk}/i) {
+										$quiet or warn "Skipping $id in $file as there isn't enough valid sequence\n";
+								}
 
 								else {
 										push @seqdata,calculate_enrichment($seq);
@@ -241,7 +246,10 @@ sub process_file {
 				if (length($seq) < $maxk) {
 						warn "Skipping $id in $file as it's too short (".length($seq).")\n";
 				}
-
+				# Check for enough valid sequence
+				elsif ($seq !~ /[GATC]{$maxk}/i) {
+						$quiet or warn "Skipping $id in $file as there isn't enough valid sequence\n";
+				}
 				else {
 						push @seqdata,calculate_enrichment($seq);
 						push @seqnames,$id;
