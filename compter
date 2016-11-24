@@ -161,7 +161,7 @@ if (max.value < min.value) {
   min.value = 0-max.value
 }
 
-png(filename = outfile,width = 900, height = 60+(12*nrow(compter.data)))
+png(filename = outfile,width = 900, height = max(200,60+(12*nrow(compter.data))))
 
 dim(compter.data)
 
