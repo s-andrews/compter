@@ -41,6 +41,7 @@ my $version;
 my $r_path = "R";
 my $no_bg_correction = 0;
 my $svg = 0;
+my $nogroup = 0;
 
 unless (
 		GetOptions (
@@ -58,6 +59,7 @@ unless (
 				"version" => \$version,
 				"rpath=s" => \$r_path,
 				"svg" => \$svg,
+				"nogroup" => \$nogroup,
 		)
 		) {die "Failed to parse options\n";}
 
@@ -72,6 +74,8 @@ if ($version) {
 }
 
 $svg = $svg ? "TRUE" : "FALSE";
+
+$nogroup = $nogroup ? "FALSE" : "TRUE";
 
 if ($bglist) {
 		chdir "$Bin/backgrounds" or die "Can't move to backgrounds directory: $!";
@@ -182,6 +186,7 @@ pheatmap(compter.data,
          annotation=group.annotation,
          show_colnames=FALSE,
          main=file,
+				 cluster_cols=$nogroup,
          breaks=seq(from=min.value,to=max.value,length.out=50),
          color=colorRampPalette(c("magenta","white","green"))(50),
          border.color = NA)
