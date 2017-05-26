@@ -40,7 +40,7 @@ my $nograph;
 my $version;
 my $r_path = "R";
 my $no_bg_correction = 0;
-
+my $svg = 0;
 
 unless (
 		GetOptions (
@@ -57,6 +57,7 @@ unless (
 				"bglist" => \$bglist,
 				"version" => \$version,
 				"rpath=s" => \$r_path,
+				"svg" => \$svg,
 		)
 		) {die "Failed to parse options\n";}
 
@@ -69,6 +70,8 @@ if ($version) {
 		print "Compter version $VERSION\n\n";
 		exit;
 }
+
+$svg = $svg ? "TRUE" : "FALSE";
 
 if ($bglist) {
 		chdir "$Bin/backgrounds" or die "Can't move to backgrounds directory: $!";
@@ -131,13 +134,19 @@ sub draw_heatmap {
 		my $dir = getcwd;
 		my $outfile = $infile;
 		$outfile =~ s/\.txt$//;
-		$outfile .= ".png";
 
+		if ($svg eq "TRUE") {
+				$outfile .= ".svg";
+		}
+		else {
+				$outfile .= ".png";
+		}
 
 		my $r_script = <<"END_SCRIPT";
 directory <- "$dir"
 file <- "$infile"
 outfile <- "$outfile"
+use.svg <- $svg
 
 setwd(directory)
 library(pheatmap)
@@ -161,7 +170,11 @@ if (max.value < min.value) {
   min.value = 0-max.value
 }
 
-png(filename = outfile,width = 900, height = max(200,60+(12*nrow(compter.data))))
+if (use.svg) {
+		svg(filename = outfile,pointsize=8, width = 9, height = as.integer(max(2,1+(0.15*nrow(compter.data)))))
+} else {
+		png(filename = outfile,width = 900, height = max(200,60+(12*nrow(compter.data))))
+}
 
 dim(compter.data)
 
@@ -722,7 +735,6 @@ OPTIONS
 --mink             The minimum length of the kmers to be analysed.  Default 1.
                    Valid values are 1,2 or 3.
 
-
 --maxk             The maximum length of the kmers to be analysed.  Default 3.
                    Valid values are 1,2 or 3.
 
@@ -735,6 +747,9 @@ OPTIONS
 -s --savebg        Specify a file name into which the currently calculated 
                    background will be saved.  Only has any effect when --background
                    is specified with a value which is a (multi) fasta file.
+
+--svg              Graphical output will be written to an SVG file instead of
+                   the default PNG.
 
 --rpath            Specify the full path to the R executable (not RScript or R.app)
                    you want to use.  Required when R isn\'t in your path.
