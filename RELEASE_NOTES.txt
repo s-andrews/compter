@@ -1,3 +1,28 @@
+RELEASE NOTES FOR v0.2
+----------------------
+
+Compter version 0.2 adds a number of new useful functions to the 
+program:
+
+* You can now calculate frequencies rather than enrichments by
+  setting the --background option to 'none'
+
+* You can choose to not cluster the columns of the plot by setting
+  the --nogroup option
+
+* You can output to svg instead of png by setting the --svg option
+
+NOTE: There is a bug in older versions of R which means the --svg
+option may crash R on some platforms.  If compter fails when using
+--svg put works when outputting PNG files then try updating to
+R >=3.4.0 to fix this.
+
+Also note that for large datasets the size of SVG files produced 
+by the program might be quite large (many megabytes).  There's not
+much we can do about this - there are a lot of objects to draw and
+SVG is a chatty language.
+
+
 RELEASE NOTES FOR v0.1.1
 ------------------------
 
