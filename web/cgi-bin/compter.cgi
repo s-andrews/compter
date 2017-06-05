@@ -54,6 +54,7 @@ sub show_job {
 	COMPTER_VERSION => $compter::Constants::COMPTER_VERSION,
 	ADMIN_EMAIL => $compter::Constants::ADMIN_EMAIL,
 	BASE_URL => $compter::Constants::BASE_URL,
+	JOB_ID => $job_id,
 	);
 
     if (-e "$compter::Constants::DATA_DIR/$job_id/output.png") {
