@@ -15,8 +15,35 @@
 
       <form method="POST" enctype="multipart/form-data" action="<!-- TMPL_VAR NAME=BASE_URL ESCAPE=HTML -->">
 
-	<p>First Sequence FastQ file <input type="file" name="fastq1"></p>
-	<p>Second Sequence FastQ file (optional) <input type="file" name="fastq2"></p>
+	<table>
+	  <tr>
+	    <th>First Sequence FastQ file</th>
+	    <td colspan="2"><input type="file" name="fastq1"></td>
+	  </tr>
+	  <tr>
+	    <th>Second Sequence FastQ file (optional)</th>
+	    <td colspan="2"><input type="file" name="fastq2"></td>
+	  </tr>
+	  <tr>
+	    <th rowspan="3">Background</th>
+	    <td><input type="radio" name="background" value="none">None</td>
+	    <td>[No options]</td>
+	  </tr>
+	  <tr>
+	    <td><input type="radio" name="background" value="theoretical">Theoretical (%GC)</td>
+	    <td><input type="text" name="percentgc" value="50"></td>
+	  </tr>
+	  <tr>
+	    <td><input type="radio" name="background" value="precalc" checked>Pre-calculated</td>
+	    <td>
+	      <select name="precalc_species">
+		<!-- TMPL_LOOP NAME=SPECIES -->
+		<option><!-- TMPL_VAR NAME=SPECIES_NAME --></option>
+		<!-- /TMPL_LOOP -->
+	      </select>
+	    </td>
+	  </tr>
+	</table>
 
 	<p><input type="submit"></p>
 
