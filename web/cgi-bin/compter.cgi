@@ -146,6 +146,31 @@ sub process_submission {
 	die "Couldn't find a valid bgtype (got '$bgtype'";
     }
 
+    # Check the kmer range
+    my $mink = $q ->param("mink");
+    unless ($mink =~ /^\d+$/) {
+	die "Mink was not an integer";
+    }
+    if ($mink > 3 or $mink < 1) {
+	die "Invalid value ($mink) for mink";
+    }
+
+    my $maxk = $q ->param("maxk");
+    unless ($maxk =~ /^\d+$/) {
+	die "Maxk was not an integer";
+    }
+    if ($maxk > 3 or $maxk < 1) {
+	die "Invalid value ($maxk) for maxk";
+    }
+
+    # Check for silly kmer ranges
+    if ($mink > $maxk) {
+	my $temp = $mink;
+	$mink = $maxk;
+	$maxk = $temp;
+    }
+
+
     # Now we can make a data folder
     my ($code,$dir) = make_run_dir();
 
@@ -184,7 +209,7 @@ sub process_submission {
 
     # We can now constuct the compter command
 
-    my $compter_command = "$RealBin/../../compter --outfile output.txt";
+    my $compter_command = "$RealBin/../../compter --outfile output.txt --mink $mink --maxk $maxk";
 
     # Add the background
     if ($bgtype eq "none") {
