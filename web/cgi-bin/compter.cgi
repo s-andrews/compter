@@ -171,6 +171,9 @@ sub process_submission {
 	$maxk = $temp;
     }
 
+    # See if we're clustering
+    my $group = $q->param("group");
+
 
     # Now we can make a data folder
     my ($code,$dir) = make_run_dir();
@@ -211,6 +214,12 @@ sub process_submission {
     # We can now constuct the compter command
 
     my $compter_command = "$RealBin/../../compter --outfile output.txt --mink $mink --maxk $maxk";
+
+
+    # Set the grouping
+    unless ($group) {
+	$compter_command .= " --nogroup";
+    }
 
     # Add the background
     if ($bgtype eq "none") {
