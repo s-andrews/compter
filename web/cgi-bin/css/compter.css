@@ -35,9 +35,9 @@ table {
 
 th { 
   text-align: center;
-  background-color: #326B30;
+  background-color: #00506E;
   color: #FFFFFF;
-  padding: 0.4em;
+  padding: 0.8em;
   font-size: 80%;
 }
 
@@ -83,20 +83,6 @@ td input[type="text"]  {
   margin-bottom: 10px; 
 }
 
-#infobar { 
-  margin-left: auto;
-  margin-right: auto;
-  background-color: #326B30;
-  width: 98%;
-  font-size: 90%;
-  text-align: left;
-  padding-top :0.4em;
-  padding-bottom :0.4em;
-  padding-left :2%;
-  color: white;
-}
-
-
 #footer {
   border-top: 1px;
   padding-top: 3px;
@@ -131,19 +117,6 @@ p.warning {
   text-align: center;
  }
 
-div.note { 
-  background-color: #DDDDDD;
-  padding: 0.5em;
-  margin-top: 0.5em;
-}
-
-div.note h4 { 
-  margin: 0;
-}
-div.note p { 
-  margin: 0;
-  margin-top: 0.5em;
-}
 
 textarea {
   padding: 0;
