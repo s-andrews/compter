@@ -7,6 +7,7 @@ use HTML::Template;
 use lib "$RealBin/../packages";
 use compter::Constants;
 use CGI::Carp qw(fatalsToBrowser);
+use MIME::Base64;
 
 
 # This sets the maximum POST size.  In the conf file
@@ -47,13 +48,26 @@ sub show_job {
 	die "Couldn't find job $job_id - it might have been removed";
     }
 
+    my $template = HTML::Template -> new(filename => "$RealBin/../templates/job.html");
+    
+    $template -> param(
+	COMPTER_VERSION => $compter::Constants::COMPTER_VERSION,
+	ADMIN_EMAIL => $compter::Constants::ADMIN_EMAIL,
+	);
 
     if (-e "$compter::Constants::DATA_DIR/$job_id/output.png") {
 
+	$template -> param("running" => 0);
+
 	open (PNG,"$compter::Constants::DATA_DIR/$job_id/output.png") or die "Can't open output.png for $job_id $!";
 	binmode PNG;
+	my $base64_cluster;
+	$base64_cluster .= $_ while (<PNG>);
+	$base64_cluster = encode_base64($base64_cluster);
+	
+	$base64_cluster =~ s/[\r\n]//g;
 
-	print "Content-type: image/png\n\n";
+	$template -> param(CLUSTER_IMAGE => $base64_cluster);
 
 	print while (<PNG>);
 
@@ -62,9 +76,13 @@ sub show_job {
     }
 
     else {
-	# We're still waiting
-	die "Waiting for job to finish";
+	$template -> param("running" => 1);
+
+	
+
     }
+
+    print $template -> output();
 
 
 }
