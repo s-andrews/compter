@@ -69,10 +69,12 @@ td input[type="text"]  {
   text-align:left;
   color: white;
   font-size:80%;
-
 }
 
-
+#header a {
+  color: white;
+  text-decoration: none;
+}
 
 #main {
   padding: 0px;

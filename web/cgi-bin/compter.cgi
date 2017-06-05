@@ -53,6 +53,7 @@ sub show_job {
     $template -> param(
 	COMPTER_VERSION => $compter::Constants::COMPTER_VERSION,
 	ADMIN_EMAIL => $compter::Constants::ADMIN_EMAIL,
+	BASE_URL => $compter::Constants::BASE_URL,
 	);
 
     if (-e "$compter::Constants::DATA_DIR/$job_id/output.png") {
@@ -269,6 +270,7 @@ sub show_upload {
 	MAX_DATA_SIZE => $compter::Constants::MAX_DATA_SIZE,
 	COMPTER_VERSION => $compter::Constants::COMPTER_VERSION,
 	ADMIN_EMAIL => $compter::Constants::ADMIN_EMAIL,
+	BASE_URL => $compter::Constants::BASE_URL,
 	SPECIES => \@species,
 
 	);
