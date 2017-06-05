@@ -12,10 +12,15 @@ use CGI::Carp qw(fatalsToBrowser);
 # This sets the maximum POST size.  In the conf file
 # the value they set is the size per file so we double
 # that and convert to bytes to set this value correctly.
-$CGI::POST_MAX=2*1024*$compter::Constants::MAX_DATA_SIZE;
+$CGI::POST_MAX=2*1024*1024*$compter::Constants::MAX_DATA_SIZE;
 
 my $q = CGI -> new();
 
+# We need to check for an error state - this will happen if the 
+# uploaded files are too big.
+if ($q->cgi_error()) {
+    die $q->cgi_error();
+}
 
 my $job_id = $q->param("job_id");
 
@@ -34,7 +39,28 @@ sub show_job {
 
     my ($job_id) = @_;
 
-    die "Showing details for $job_id";
+    unless ($job_id =~ /^[A-Za-z0-9]+$/) {
+	die "$job_id isn't a valid job id";
+    }
+
+    unless (-e "$compter::Constants::DATA_DIR/$job_id") {
+	die "Couldn't find job $job_id - it might have been removed";
+    }
+
+
+    if (-e "$compter::Constants::DATA_DIR/$job_id/output.png") {
+
+	open (PNG,"$compter::Constants::DATA_DIR/$job_id/output.png") or die "Can't open output.png for $job_id $!";
+	binmode PNG;
+
+	print "Content-type: image/png\n\n";
+
+	print while (<PNG>);
+
+	close PNG;
+
+    }
+
 
 }
 
@@ -134,7 +160,7 @@ sub process_submission {
 
     # We can now constuct the compter command
 
-    my $compter_command = "$RealBin/../../compter";
+    my $compter_command = "$RealBin/../../compter --outfile output.txt";
 
     # Add the background
 
