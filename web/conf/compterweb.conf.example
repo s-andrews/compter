@@ -1,0 +1,70 @@
+## BASE URL
+# This specifies the full URL to the sierra.pl script on your
+# webserver.  If you're using the supplied apache configuration
+# file you'll just need to change the hostname part of the
+# example value shown below
+
+BASE_URL	http://www.example.com/compter/compter.cgi
+
+## DATA_DIR
+# A directory where the results of anlayses will be stored
+
+DATA_DIR	/srv/compter
+
+## MAX_DATA_SIZE
+# This value sets the maximum upload size (in MB) of the 
+# sequence files users can upload to the system.  They are
+# able to upload 2 files, so the true max data size is 
+# twice the value set here.
+
+MAX_DATA_SIZE	50
+
+## RETENTION_TIME
+# This is the time (in hours) that searches will be kept on
+# the server.  Search results may persist longer than this
+# in practice beacause they are only checked when a new
+# submission arrives.
+
+RETENTION_TIME 24
+
+
+## ADMIN_NAME
+# The name of the person who runs this system. This will
+# appear in help messages and emails sent by the system
+
+ADMIN_NAME	Compter Admin
+
+## ADMIN_EMAIL
+# This is the email address which  will be linked in the footer of
+# each web page as the place to seek help with any problems
+
+ADMIN_EMAIL	compter.admin@example.com
+
+## SMTP_SERVER
+# The hostname of an smtp server through which you are able to send
+# emails.  You can leave this blank if you have a local mailserver.
+
+SMTP_SERVER	smtp.example.com
+
+## SMTP_USERNAME and SMTP_PASSWORD
+# If your SMTP server needs to be authenticated then you can put the
+# username and password you want to use in these filds.  Leave them
+# blank if you don't need to authenticate
+
+SMTP_USERNAME	example_username
+SMTP_PASSWORD	example_password
+
+
+## MAILS_FROM_ADDRESS
+# This is the address from which emails sent by the system will
+# appear to originate, and which will receive any bounces if the
+# mail is not successfully delivered
+
+MAILS_FROM_ADDRESS	bounces@example.com
+
+## R_PATH
+# If you want to use a version of R which isn't in the standard
+# path then put the full path to R here.  If you're happy to just
+# use the R in the path then just set this value to 'R'
+R_PATH  R
+

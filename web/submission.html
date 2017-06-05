@@ -1,0 +1,212 @@
+<!-- TMPL_INCLUDE NAME="header.html" -->
+<!-- TMPL_INCLUDE NAME="toolbar.html" -->
+<!-- TMPL_INCLUDE NAME="user_menu.html" -->
+
+    <div id="main">
+
+  <!-- TMPL_IF NAME=PUBLIC_QUEUE -->
+
+  <h2>Current Queue Status</h2>
+
+  <table>
+    <tr>
+      <th>Run Type</th>
+      <th>Samples Registered</th>
+      <th>Samples Received</th>
+      <th>Samples Passed QC</th>
+    </tr>
+
+    <!-- TMPL_IF NAME=QUEUE_STATUS -->
+
+    <!-- TMPL_LOOP NAME=QUEUE_STATUS -->
+    <tr>
+      <td><!-- TMPL_VAR NAME=RUN_TYPE ESCAPE=HTML --></td>
+      <td class="center"><!-- TMPL_VAR NAME=SAMPLES_REGISTERED ESCAPE=HTML --></td>
+      <td class="center"><!-- TMPL_VAR NAME=SAMPLES_RECEIVED ESCAPE=HTML --></td>
+      <td class="center"><!-- TMPL_VAR NAME=SAMPLES_PASSED_QC ESCAPE=HTML --></td>
+    <!-- /TMPL_LOOP -->
+
+    <!-- TMPL_ELSE -->
+    <tr>
+      <td colspan="4" class="center">No Samples in the Queue</td>
+    </tr>
+
+    <!-- /TMPL_IF -->
+
+  </table>  
+
+  <!-- TMPL_ELSE -->
+
+  <!-- TMPL_IF NAME=IS_ADMIN -->
+
+  <h2>Current Queue Status</h2>
+
+  <table>
+    <tr>
+      <th>Run Type</th>
+      <th>Samples Registered</th>
+      <th>Samples Received</th>
+      <th>Samples Passed QC</th>
+    </tr>
+
+    <!-- TMPL_IF NAME=QUEUE_STATUS -->
+
+    <!-- TMPL_LOOP NAME=QUEUE_STATUS -->
+    <tr>
+      <td><!-- TMPL_VAR NAME=RUN_TYPE ESCAPE=HTML --></td>
+      <td class="center"><!-- TMPL_VAR NAME=SAMPLES_REGISTERED ESCAPE=HTML --></td>
+      <td class="center"><!-- TMPL_VAR NAME=SAMPLES_RECEIVED ESCAPE=HTML --></td>
+      <td class="center"><!-- TMPL_VAR NAME=SAMPLES_PASSED_QC ESCAPE=HTML --></td>
+    <!-- /TMPL_LOOP -->
+
+    <!-- TMPL_ELSE -->
+    <tr>
+      <td colspan="4" class="center">No Samples in the Queue</td>
+    </tr>
+
+    <!-- /TMPL_IF -->
+
+  </table>  
+
+
+  <!-- /TMPL_IF -->
+  <!-- /TMPL_IF -->
+
+
+
+
+  <!-- TMPL_UNLESS NAME=IS_ADMIN -->
+
+  <h2>Currently Active Samples</h2>
+
+  <table>
+    <tr>
+      <th>Sample ID</th>
+      <th>Sample Name</th>
+      <th>Run type</th>
+      <th>Received</th>
+      <th>Passed QC</th>
+      <th>Lanes Requested</th>
+      <th>Lanes Run</th>
+    </tr>
+
+    <!-- TMPL_IF NAME=ACTIVE_SAMPLES -->
+
+    <!-- TMPL_LOOP NAME=ACTIVE_SAMPLES -->
+    <tr>
+      <td><a href="sierra.pl?action=view_sample&amp;sample_id=<!-- TMPL_VAR NAME=SAMPLE_ID ESCAPE=HTML -->">Sample <!-- TMPL_VAR NAME=SAMPLE_ID ESCAPE=HTML --></a></td>
+      <td><!-- TMPL_VAR NAME=NAME ESCAPE=HTML --></td>
+      <td><!-- TMPL_VAR NAME=RUN_TYPE ESCAPE=HTML --></td>
+      <td><!-- TMPL_IF NAME=RECEIVED --><!-- TMPL_VAR NAME=RECEIVED ESCAPE=HTML --><!-- TMPL_ELSE -->Not Yet Received<!-- /TMPL_IF --></td>
+      <td><!-- TMPL_IF NAME=RECEIVED --><!-- TMPL_IF NAME=PASSED_QC --><!-- TMPL_VAR NAME=PASSED_QC ESCAPE=HTML --><!-- TMPL_ELSE -->Not Passed QC<!-- /TMPL_IF --><!-- TMPL_ELSE -->Not Received<!-- /TMPL_IF --></td>
+      <td><!-- TMPL_VAR NAME=LANES_REQUESTED ESCAPE=HTML --></td>
+      <td><!-- TMPL_VAR NAME=LANES_RUN ESCAPE=HTML --></td>
+    </tr>
+    <!-- /TMPL_LOOP -->
+
+    <!-- TMPL_ELSE -->
+    <tr>
+      <td colspan="8" class="center">No Active Samples</td>
+    </tr>
+    <!-- /TMPL_IF -->
+
+  </table>  
+
+  <!-- /TMPL_UNLESS -->
+
+  <h2>Recently Run Samples</h2>
+
+  <table>
+    <tr>
+      <th>Sample ID</th>
+      <th>Sample Name</th>
+      <!-- TMPL_IF NAME=IS_ADMIN -->
+      <th>Owner</th>
+      <!-- /TMPL_IF -->
+      <th>Lane ID</th>
+    </tr>
+    <!-- TMPL_IF NAME=RECENT_SAMPLES -->
+
+    <!-- TMPL_LOOP NAME=RECENT_SAMPLES -->
+    <tr>
+      <td><a href="sierra.pl?action=view_sample&amp;sample_id=<!-- TMPL_VAR NAME=SAMPLE_ID ESCAPE=HTML -->">Sample <!-- TMPL_VAR NAME=SAMPLE_ID ESCAPE=HTML --></a></td>
+      <td><!-- TMPL_VAR NAME=NAME ESCAPE=HTML --></td>
+      <!-- TMPL_IF NAME=IS_ADMIN -->
+      <td><!-- TMPL_VAR NAME=OWNER ESCAPE=HTML --></td>
+      <!-- /TMPL_IF -->      
+      <td><a href="sierra.pl?action=view_lane&amp;lane_id=<!-- TMPL_VAR NAME=LANE_ID ESCAPE=HTML -->">Lane <!-- TMPL_VAR NAME=LANE_ID ESCAPE=HTML --></a></td>
+    </tr>
+    <!-- /TMPL_LOOP -->
+
+    <!-- TMPL_ELSE -->
+    <tr>
+      <td colspan="5" class="center">No Recent Samples</td>
+    </tr>
+    <!-- /TMPL_IF -->
+
+  </table>  
+
+
+  <!-- TMPL_IF NAME=IS_ADMIN -->
+  <h2>Recent Flowcells</h2>
+  <table>
+    <tr>
+      <th>Flowcell ID</th>
+      <th>Run Folder</th>
+      <th>Run Type</th>
+      <th>Run Date</th>
+    </tr>
+
+    <!-- TMPL_IF NAME=RECENT_FLOWCELLS -->
+
+    <!-- TMPL_LOOP NAME=RECENT_FLOWCELLS -->
+    <tr>
+      <td><a href="sierra.pl?action=view_flowcell&amp;flowcell_id=<!-- TMPL_VAR NAME=FLOWCELL_ID ESCAPE=HTML -->">Flowcell <!-- TMPL_VAR NAME=FLOWCELL_ID ESCAPE=HTML --></a></td>
+      <td><!-- TMPL_VAR NAME=SERIAL ESCAPE=HTML --></td>
+      <td><!-- TMPL_VAR NAME=RUN_TYPE ESCAPE=HTML --></td>
+      <td><!-- TMPL_VAR NAME=RUN_DATE ESCAPE=HTML --></td>
+    </tr>
+    <!-- /TMPL_LOOP -->
+
+    <!-- TMPL_ELSE -->
+    <tr>
+      <td colspan=3 class="center">No recent flowcells</td>
+    </tr>
+    <!-- /TMPL_IF -->
+  </table>
+
+  <h2>Pending Flowcells</h2>
+
+  <table>
+    <tr>
+      <th>Flowcell ID</th>
+      <th>Serial Number</th>
+      <th>Run Type</th>
+    </tr>
+
+    <!-- TMPL_IF NAME=PENDING_FLOWCELLS -->
+
+    <!-- TMPL_LOOP NAME=PENDING_FLOWCELLS -->
+    <tr>
+      <td><a href="sierra.pl?action=new_flowcell&amp;flowcell_id=<!-- TMPL_VAR NAME=FLOWCELL_ID ESCAPE=HTML -->">Flowcell <!-- TMPL_VAR NAME=FLOWCELL_ID ESCAPE=HTML --></a></td>
+      <td><!-- TMPL_VAR NAME=SERIAL ESCAPE=HTML --></td>
+      <td><!-- TMPL_VAR NAME=RUN_TYPE ESCAPE=HTML --></td>
+    </tr>
+    <!-- /TMPL_LOOP -->
+
+    <!-- TMPL_ELSE -->
+    <tr>
+      <td colspan="3" class="center">No Pending Flowcells</td>
+    </tr>
+    <!-- /TMPL_IF -->
+
+  </table>  
+
+    
+  <!-- /TMPL_IF -->
+
+    </div>
+
+
+
+<!-- TMPL_INCLUDE NAME="footer.html" -->
