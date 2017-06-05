@@ -4,6 +4,8 @@ use strict;
 use FindBin qw($RealBin);
 use CGI;
 use HTML::Template;
+use lib "$RealBin/../packages";
+use compter::Constants;
 
 my $q = CGI -> new();
 
@@ -29,6 +31,15 @@ sub show_job {
 sub show_upload {
 
     my $template = HTML::Template -> new(filename => "$RealBin/../templates/submission.html");
+
+    $template -> param(
+	MAX_DATA_SIZE => $compter::Constants::MAX_DATA_SIZE,
+	COMPTER_VERSION => $compter::Constants::COMPTER_VERSION,
+	ADMIN_EMAIL => $compter::Constants::ADMIN_EMAIL,
+	
+
+	);
+
 
     print $template->output();
 					 

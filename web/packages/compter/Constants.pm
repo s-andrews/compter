@@ -5,7 +5,7 @@ use FindBin;
 
 package compter::Constants;
 
-our $COMPTER_VERSION = `$FindBin::RealBin/../../../compter --version`;
+our $COMPTER_VERSION = `$FindBin::RealBin/../../compter --version`;
 
 # The constants below are populated from a file called
 # sierra.conf in the conf directory of your sierra
