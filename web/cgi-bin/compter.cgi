@@ -187,6 +187,15 @@ sub process_submission {
     my $compter_command = "$RealBin/../../compter --outfile output.txt";
 
     # Add the background
+    if ($bgtype eq "none") {
+	$compter_command .= " --background none";
+    }
+    elsif ($bgtype eq "theoretical") {
+	$compter_command .= "--gc $gc";
+    }
+    elsif ($bgtype eq "precalc") {
+	$compter_command .= " --background $species";	
+    }
 
     # Specify the data
 
