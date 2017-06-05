@@ -61,6 +61,11 @@ sub show_job {
 
     }
 
+    else {
+	# We're still waiting
+	die "Waiting for job to finish";
+    }
+
 
 }
 
@@ -170,9 +175,9 @@ sub process_submission {
     $compter_command .= " \"$fastq2\"" if ($fastq2);
     
     # Redirect the output
-    $compter_command .= " > compter_log.txt 2>compter_errors.txt";
+    $compter_command .= " > compter_log.txt 2>compter_errors.txt &";
 
-    # Run the command
+    # Run the command in the background
     `$compter_command`;
 
     # Send them to the progress page for the job
