@@ -1,0 +1,25 @@
+<!-- TMPL_INCLUDE NAME="header.html" -->
+
+    <div id="main">
+
+      <h2>Results for job <!-- TMPL_VAR NAME=JOB_ID ESCAPE=HTML --></h2>
+
+      <!-- TMPL_IF NAME=RUNNING -->
+      <p class="centre"> Job is still running (page will auto-refresh) </p>
+      <!-- TMPL_ELSE -->
+
+      <h3>Clustered Kmer Image</h3>
+
+      <p>
+	<img src="data:image/png;base64,<!-- TMPL_VAR NAME=CLUSTER_IMAGE -->" />
+      </p>
+
+
+      <!-- /TMPL_IF -->
+
+
+    </div>
+
+
+
+<!-- TMPL_INCLUDE NAME="footer.html" -->
