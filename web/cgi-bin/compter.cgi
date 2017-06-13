@@ -20,7 +20,8 @@ my $q = CGI -> new();
 # We need to check for an error state - this will happen if the 
 # uploaded files are too big.
 if ($q->cgi_error()) {
-    die $q->cgi_error();
+    print_error("Sorry, your upload size exceeded the maximum allowed size.  Try again with smaller sequence files");
+    return;
 }
 
 my $job_id = $q->param("job_id");
