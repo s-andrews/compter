@@ -65,7 +65,8 @@ sub show_job {
     }
 
     unless (-e "$compter::Constants::DATA_DIR/$job_id") {
-	die "Couldn't find job $job_id - it might have been removed";
+	print_error("Couldn't find job $job_id. Jobs are deleted after $compter::Constants::RETENTION_TIME hours");
+	return;
     }
 
     my $template = HTML::Template -> new(filename => "$RealBin/../templates/job.html");
