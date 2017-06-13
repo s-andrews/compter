@@ -36,6 +36,25 @@ else {
 }
 
 
+sub print_error {
+
+    my ($message) = @_;
+
+    my $template = HTML::Template -> new(filename => "$RealBin/../templates/message.html");
+    
+
+    $template -> param(
+	COMPTER_VERSION => $compter::Constants::COMPTER_VERSION,
+	ADMIN_EMAIL => $compter::Constants::ADMIN_EMAIL,
+	BASE_URL => $compter::Constants::BASE_URL,
+	MESSAGE => $message,
+	);
+
+
+    print $template -> output();
+
+}
+
 sub show_job {
 
     my ($job_id) = @_;
