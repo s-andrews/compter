@@ -84,6 +84,14 @@ td input[type="text"]  {
   margin-bottom: 10px; 
 }
 
+#help {
+  padding: 0px;
+  margin-left: 50px;
+  border-left: 1px;
+  margin-right: 50px;
+  margin-bottom: 10px; 
+}
+
 #footer {
   border-top: 1px;
   padding-top: 3px;

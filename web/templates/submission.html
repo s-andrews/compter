@@ -10,8 +10,82 @@
 	nucleotide sequence files.  On this system each of
 	these can have a maximum size of
 
-	<!-- TMPL_VAR NAME=MAX_DATA_SIZE ESCAPE=HTML -->MB
+	<strong><!-- TMPL_VAR NAME=MAX_DATA_SIZE ESCAPE=HTML -->MB</strong>
       </p>
+
+      <p class="center">
+	<a href="javascript:ReverseDisplay('help')">Click to show/hide help.</a>
+	</p>
+
+
+	
+	<div id="help" style="display:none;">
+	  <h2>Help</h2>
+
+	  <h3>Sequences</h3>
+	  <p>
+	    Submitted files should be nucleotide sequence in multi-fasta format (uncompressed). The 
+	    default setup will only look at the first 1000 sequences in each file.  The total size of
+	    encoded data must be below <!-- TMPL_VAR NAME=MAX_DATA_SIZE ESCAPE=HTML -->MB.
+	  </p>
+	  <p>
+	    The first sequence file is mandatory but the second file is optional.  If you have more
+	    than two sequence groups then you will need to use the command line version of compter
+	    to process these.
+	  </p>
+	  
+	  <h3>Background</h3>
+	  <p>
+	    Kmer values from compter are generally expressed relative to a background Kmer distribution.
+	    You have a number of choices how to set this and these may affect the perceived enrichment
+	    or depletion of the kmers in your data.
+	  </p>
+	  <ol>
+	    <li>You can choose to have no background.  In this case the values reported by the tool
+	      are the frequencies with which each kmer is observed.  If you are doing this then we 
+	      would recommend performing a fixed length kmer analysis otherwise there will be 
+	      systematic differences in the observed frequencies of kmers of different lengths</li>
+	    <li>You can construct a theoretical background based on a specific GC content. This will
+	      generally reflect the expected level of each kmer but will not show and organism specific
+	      biases (eg the general under-representation of CG in higher eukaryotes)</li>
+	    <li>You can use a pre-calculated background. You will see a list of pre-calculated 
+	      frequences for the species which have been installed on your compter installation.  These
+	      represent the true observed kmer frequencies in the genome you select</li>
+	  </ol>
+	  <p>
+	    If you use a background then the values reported will be log2(observed/expected) for your
+	    sample against the background.
+	  </p>
+	  <p>
+	    In the command line version of compter you can calculate and save a custom background from
+	    an additional fasta file.  If you have done this you can ask the admin of your compter web
+	    system to add the cmp file generated to the config directory so that it shows up as an option
+	    for future web searches.
+	  </p>
+
+	  <h3>Kmer size range</h3>
+	  <p>
+	    The kmer size range simply defines the maximum and minimum size of the kmer subsequences
+	    which will be counted and analysed in your data.
+	  </p>
+	  <p>
+	    Due to the increasing number of permutations and loss of idependence we don't allow kmer
+	    sizes above 3 to be analysed.
+	  </p>
+
+
+	  <h3>Clustering</h3>
+	  <p>
+	    This option sets whether the ordering of the sequences you supply is changed in the
+	    heatmap to place sequences which have similar composition next to each other.  If you have
+	    submitted two groups of sequences then these will be allowed to mix so you can see how
+	    well the composition separates the groups you defined.  If you turn this option off then
+	    the sequences from each file will be kept together, and the ordering of sequences within
+	    each file will also be preserved.
+	  </p>
+
+	</div>
+
 
       <form method="POST" enctype="multipart/form-data" action="<!-- TMPL_VAR NAME=BASE_URL ESCAPE=HTML -->">
 
