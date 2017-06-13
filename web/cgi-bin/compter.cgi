@@ -263,11 +263,50 @@ sub process_submission {
     # Run the command in the background
     `$compter_command`;
 
+    # Check if we can clean anything up
+    clean_jobs();
+
     # Send them to the progress page for the job
     print $q->redirect("$compter::Constants::BASE_URL?job_id=$code");
 
+}
+
+sub clean_jobs {
+
+    # THis goes through the jobs currently stored to see if there
+    # are any which have exceeded their lifetime and can be deleted
+
+    chdir($compter::Constants::DATA_DIR) or die "Can't move to job_dir: $!";
+
+    my @folders = <*>;
+
+    foreach my $folder (@folders) {
+	next unless (-d $folder); # Ignore anything else in there
+	next unless (length($folder) == 20); # Just in case they put anything else in there
+	next unless ($folder =~ /^[a-zA-Z0-9]{20}$/); # Be specific about the format we expect
+
+	# Get the last modification time for this folder
+	my $mtime = (stat($folder))[9];
+
+	# Get the age of the folder in seconds
+	my $age = time() - $mtime;
+
+	# Turn this into hours
+	$age /= (60*60);
+
+	# See if it's too old
+	if ($age > $compter::Constants::RETENTION_TIME) {
+	    system("rm -rf $folder") == 0 or warn "Compter: Failed to delete run folder $folder"; 
+	}
+    }
+
+    
+
+
 
 }
+
+
 
 
 sub make_run_dir {
