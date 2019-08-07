@@ -706,7 +706,7 @@ OPTIONS
                    it will go into a file with this name, with .txt removed
                    from the end and .png added.
 
--b --background    Specify the background against which enrichment will be
+--background       Specify the background against which enrichment will be
                    calculated.  The value associated with this can be one 
                    of four different things:
 
