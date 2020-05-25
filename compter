@@ -39,6 +39,7 @@ my $quiet;
 my $nograph;
 my $version;
 my $r_path = "R";
+my $subset;
 my $no_bg_correction = 0;
 my $svg = 0;
 my $nogroup = 0;
@@ -58,6 +59,7 @@ unless (
 				"bglist" => \$bglist,
 				"version" => \$version,
 				"rpath=s" => \$r_path,
+				"subset" => \$subset,
 				"svg" => \$svg,
 				"nogroup" => \$nogroup,
 		)
@@ -102,7 +104,7 @@ if ($bglist) {
 my @files = @ARGV;
 
 unless ($outfile and @files) {
-		die "Usage is compter --outfile [outfile] [fasta_file1].. [fastq_file_x]\nRun comter --help for more options\n";
+		die "Usage is compter --outfile [outfile] [fasta_file1].. [fastq_file_x]\nRun compter --help for more options\n";
 }
 
 check_arguments();
@@ -118,17 +120,72 @@ my @kmer_names = get_valid_kmers();
 
 print OUT join("\t",("Sequence","File",@kmer_names)),"\n";
 
-
 foreach my $file (@files) {
-		process_file ($file);
+		if($subset){
+			my $file_to_process = subset_file($file);
+			process_file ($file_to_process);
+			unlink $file_to_process if ($file_to_process ne $file);    #Delete subset files
+		} else {
+			process_file ($file);
+		}
 }
-
 
 close OUT or die "Couldn't write to $outfile: $!";
 
 if (!$nograph) {
 		draw_heatmap($outfile);
 }
+
+$quiet or warn "Done\n";
+
+exit (0);
+
+
+sub subset_file {
+	my ($file) = @_;
+
+	$quiet or warn "Counting reads in $file\n";
+	open (SUBSET_IN, $file) or die "Can't read $file: $!";
+
+	my $count = 0;
+	while (<SUBSET_IN>) {
+		++$count if (/^>/);
+	}
+	
+	close SUBSET_IN or die "Could not close filehandle on '$file' : $!";
+
+	my $subset_count = defined $maxseq ? $maxseq : 1000;    #1000 is default value
+	my $subset_file;
+
+	if($count > $subset_count * 2){   #Make reduction
+		my $interval = sprintf( "%.0f", ( $count / $subset_count ) );
+    	$quiet or warn "Making reduced sequence file with ratio $interval:1\n";
+    	
+		$subset_file = "$file.subset.fa";
+		open (SUBSET_IN2, $file) or die "Can't read $file: $!";
+		open (SUBSET_OUT, '>', $subset_file) or die "Could not write to $subset_file\n";
+		$count = 0;
+		
+		while (<SUBSET_IN2>) {
+			my $line = $_;
+			++$count if $line =~ (/^>/);
+			print SUBSET_OUT $line unless ($count % $interval);
+		}
+
+		close SUBSET_OUT or die "Could not close filehandle on '$subset_file' : $!";
+		close SUBSET_IN2 or die "Could not close filehandle on '$file' : $!";
+
+	} else {
+		$quiet or warn "Not making subset of $subset_count since $count actual sequences is too low or close enough\n";
+	} 
+	if(defined $subset_file){
+		return $subset_file;
+	} else {
+		return $file;
+	}
+}
+
+
 
 sub draw_heatmap {
 		
@@ -582,7 +639,7 @@ sub _make_compter_background {
 
 		my ($file) = @_;
 
-		$quiet or warn "Reading background from $file\n";
+		$quiet or warn "Reading background from $file\n\n";
 
 		# A compter background file is simply a 2 column delimited file
 		# of kmer vs frequency.  We need to keep a record of the range of
@@ -755,6 +812,11 @@ OPTIONS
 
 --svg              Graphical output will be written to an SVG file instead of
                    the default PNG.
+
+--subset           Subset the input FASTA files to 1000 reads, unless another value 
+                   is specified with the --maxseq option. Reads are selected at 
+                   regular intervals, preventing biases that may occur when only 
+                   selecting reads from towards the top of the input FASTA file.
 
 --rpath            Specify the full path to the R executable (not RScript or R.app)
                    you want to use.  Required when R isn\'t in your path.
