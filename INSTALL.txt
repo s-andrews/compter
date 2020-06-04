@@ -71,7 +71,7 @@ To check that compter is installed correctly and working,
 move into the "test" directory in the compter install and
 run:
 
-compter -b mouse -o test.txt high_seqs.fa  low_seqs.fa
+compter -background mouse -o test.txt high_seqs.fa low_seqs.fa
 
 You should see output like:
 

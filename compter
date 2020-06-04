@@ -6,7 +6,7 @@ use Cwd;
 use FindBin qw($Bin);
 $|++;
 
-our $VERSION = "0.2";
+our $VERSION = "0.3.dev";
 
 #############################################################################
 #                                                                           #
@@ -752,18 +752,13 @@ a single sequence set.
 USAGE
 -----
 
-compter [options] [file1] [file2] [file n]
+compter [options] --outfile [outfile] [FASTA file1] [FASTA file2] [FASTA file n]
 
 
 OPTIONS
 -------
 
--o --outfile       [Required] The name of the file to write the text 
-                   based output to. If graphical output is produced then
-                   it will go into a file with this name, with .txt removed
-                   from the end and .png added.
-
--b --background    Specify the background against which enrichment will be
+--background       Specify the background against which enrichment will be
                    calculated.  The value associated with this can be one 
                    of four different things:
 
@@ -790,9 +785,11 @@ OPTIONS
                    available in this installation of compter.  These backgrounds
                    can be specified directly in the --background option
 
--g --gc            If no background sequence exists for the analysis you want
+--gc               If no background sequence exists for the analysis you want
                    to perform then you can use a theoretcial background based
                    solely around the GC content of the sequence.
+
+-h --help          Print help message then exit.
 
 --mink             The minimum length of the kmers to be analysed.  Default 1.
                    Valid values are 1,2 or 3.
@@ -806,7 +803,18 @@ OPTIONS
                    loads of sequences into this analysis as the graphs will not
                    scale to very large sequence numbers.  Default 1000.
 
--s --savebg        Specify a file name into which the currently calculated 
+-n --nograph       Skip the drawing of the heatmap and just calculate the table
+                   of results.
+
+-o --outfile       [Required] The name of the file to write the text 
+                   based output to. If graphical output is produced then
+                   it will go into a file with this name, with .txt removed
+                   from the end and .png added.
+
+-r --rpath         Specify the full path to the R executable (not RScript or R.app)
+                   you want to use.  Required when R isn\'t in your path.
+
+--savebg           Specify a file name into which the currently calculated 
                    background will be saved.  Only has any effect when --background
                    is specified with a value which is a (multi) fasta file.
 
@@ -818,12 +826,6 @@ OPTIONS
                    regular intervals, preventing biases that may occur when only 
                    selecting reads from towards the top of the input FASTA file.
 
---rpath            Specify the full path to the R executable (not RScript or R.app)
-                   you want to use.  Required when R isn\'t in your path.
-
---nograph          Skip the drawing of the heatmap and just calculate the table
-                   of results.
-
---quiet            Supress all progress messages
+-q --quiet         Supress all progress messages
 
 -v --version       Print the version of compter being used, then exit.
