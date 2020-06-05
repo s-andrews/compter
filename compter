@@ -6,7 +6,7 @@ use Cwd;
 use FindBin qw($Bin);
 $|++;
 
-our $VERSION = "0.2";
+our $VERSION = "0.3";
 
 #############################################################################
 #                                                                           #
@@ -120,25 +120,64 @@ my @kmer_names = get_valid_kmers();
 
 print OUT join("\t",("Sequence","File",@kmer_names)),"\n";
 
+my %matrix_intervals;   # %{input_filemame} = interval : (gives the interval for subsetting output matrix, where necessary)
 foreach my $file (@files) {
 		if($subset){
 			my $file_to_process = subset_file($file);
-			process_file ($file_to_process);
+			$matrix_intervals{$file_to_process} = process_file($file_to_process);
 			unlink $file_to_process if ($file_to_process ne $file);    #Delete subset files
 		} else {
-			process_file ($file);
+			$matrix_intervals{$file} = process_file ($file);
 		}
 }
 
 close OUT or die "Couldn't write to $outfile: $!";
 
-if (!$nograph) {
-		draw_heatmap($outfile);
+unless ($nograph) {
+
+		#Check whether need to subset the data matrix before plotting the heatmap
+		my $perform_subset_flag = 0;
+		foreach my $file (keys %matrix_intervals){
+			if( $matrix_intervals{$file} > 1 ){
+				$perform_subset_flag = 1;
+				last;
+			}
+		}
+
+		if($perform_subset_flag) {
+			$quiet or warn "Subsetting data matrix '$outfile' for heatmap generation\n";
+	
+			my $heatmap_subset_file = "$outfile.heatmap.subset.txt";
+			my %counter;   #Records the lines encountered in the heatmap file
+			
+			open (HEATMAP_DATA, '<', $outfile) or die "Can't read $outfile: $!"; 
+			open (HEATMAP_SUBSET, '>', $heatmap_subset_file) or die "Could not write to $heatmap_subset_file\n";
+			print HEATMAP_SUBSET scalar(<HEATMAP_DATA>);   #Print header
+			
+			while(<HEATMAP_DATA>){
+				my $line = $_;
+				my (undef, $file) = split(/\t/, $line);
+				$counter{$file}++;
+
+				if( (!exists $matrix_intervals{$file}) or (($counter{$file} % $matrix_intervals{$file}) == 0) ) {   #Subset EACH dataset SEPARATELY
+					print HEATMAP_SUBSET $line;
+				}
+			}
+			close HEATMAP_DATA or die "Could not close filehandle on '$outfile': $!";
+			close HEATMAP_SUBSET, or die "Could not close filehandle on '$heatmap_subset_file' : $!";
+
+			draw_heatmap($heatmap_subset_file);
+			unlink($heatmap_subset_file);
+			
+		} else {
+			draw_heatmap($outfile);
+		}
 }
 
 $quiet or warn "Done\n";
 
 exit (0);
+
 
 
 sub subset_file {
@@ -288,7 +327,7 @@ sub process_file {
 								}
 
 								if ($count == $maxseq) {
-										$quiet or warn "Reached maxseq limit of $maxseq: stopping early\n";
+										$quiet or $subset or warn "Reached maxseq limit of $maxseq: stopping early\n";   #Message confusing in --subset mode, do don't display
 										last;
 								}
 
@@ -335,6 +374,7 @@ sub process_file {
 		close IN;
 
 		my @kmer_names = get_valid_kmers();
+		my $countlines;
 
 		foreach my $sample_index (0..$#seqnames) {
 				my @line = ($seqnames[$sample_index],$file);
@@ -344,11 +384,14 @@ sub process_file {
 				foreach my $index (0..$#kmer_names) {
 						push @line,$sample->[$index];
 				}
-
 				print OUT join("\t",@line),"\n";
+				$countlines++;
 		}
+		my $interval = $countlines;
+		$interval = sprintf( "%.0f", ( $count / 1000 ) );   #Aim for 1000 lines of data in heatmap data file
+		$interval = 1 if($interval == 0);
 
-
+		return $interval; 
 }
 
 sub get_observed_kmers {
@@ -752,18 +795,13 @@ a single sequence set.
 USAGE
 -----
 
-compter [options] [file1] [file2] [file n]
+compter [options] --outfile [outfile] [FASTA file1] [FASTA file2] [FASTA file n]
 
 
 OPTIONS
 -------
 
--o --outfile       [Required] The name of the file to write the text 
-                   based output to. If graphical output is produced then
-                   it will go into a file with this name, with .txt removed
-                   from the end and .png added.
-
--b --background    Specify the background against which enrichment will be
+--background       Specify the background against which enrichment will be
                    calculated.  The value associated with this can be one 
                    of four different things:
 
@@ -790,9 +828,11 @@ OPTIONS
                    available in this installation of compter.  These backgrounds
                    can be specified directly in the --background option
 
--g --gc            If no background sequence exists for the analysis you want
+--gc               If no background sequence exists for the analysis you want
                    to perform then you can use a theoretcial background based
                    solely around the GC content of the sequence.
+
+-h --help          Print help message then exit.
 
 --mink             The minimum length of the kmers to be analysed.  Default 1.
                    Valid values are 1,2 or 3.
@@ -806,7 +846,18 @@ OPTIONS
                    loads of sequences into this analysis as the graphs will not
                    scale to very large sequence numbers.  Default 1000.
 
--s --savebg        Specify a file name into which the currently calculated 
+-n --nograph       Skip the drawing of the heatmap and just calculate the table
+                   of results.
+
+-o --outfile       [Required] The name of the file to write the text 
+                   based output to. If graphical output is produced then
+                   it will go into a file with this name, with .txt removed
+                   from the end and .png added.
+
+-r --rpath         Specify the full path to the R executable (not RScript or R.app)
+                   you want to use.  Required when R isn\'t in your path.
+
+--savebg           Specify a file name into which the currently calculated 
                    background will be saved.  Only has any effect when --background
                    is specified with a value which is a (multi) fasta file.
 
@@ -818,12 +869,6 @@ OPTIONS
                    regular intervals, preventing biases that may occur when only 
                    selecting reads from towards the top of the input FASTA file.
 
---rpath            Specify the full path to the R executable (not RScript or R.app)
-                   you want to use.  Required when R isn\'t in your path.
-
---nograph          Skip the drawing of the heatmap and just calculate the table
-                   of results.
-
---quiet            Supress all progress messages
+-q --quiet         Supress all progress messages
 
 -v --version       Print the version of compter being used, then exit.
