@@ -6,9 +6,7 @@ use Cwd;
 use FindBin qw($Bin);
 $|++;
 
-use Data::Dumper;
-
-our $VERSION = "0.3.dev";
+our $VERSION = "0.3";
 
 #############################################################################
 #                                                                           #
@@ -133,8 +131,6 @@ foreach my $file (@files) {
 		}
 }
 
-print Dumper \%matrix_intervals;
-
 close OUT or die "Couldn't write to $outfile: $!";
 
 unless ($nograph) {
@@ -149,7 +145,7 @@ unless ($nograph) {
 		}
 
 		if($perform_subset_flag) {
-			warn "Subsetting data matrix '$outfile' for heatmap generation\n";
+			$quiet or warn "Subsetting data matrix '$outfile' for heatmap generation\n";
 	
 			my $heatmap_subset_file = "$outfile.heatmap.subset.txt";
 			my %counter;   #Records the lines encountered in the heatmap file
@@ -171,7 +167,7 @@ unless ($nograph) {
 			close HEATMAP_SUBSET, or die "Could not close filehandle on '$heatmap_subset_file' : $!";
 
 			draw_heatmap($heatmap_subset_file);
-			#unlink($heatmap_subset_file);
+			unlink($heatmap_subset_file);
 			
 		} else {
 			draw_heatmap($outfile);
@@ -331,7 +327,7 @@ sub process_file {
 								}
 
 								if ($count == $maxseq) {
-										$quiet or warn "Reached maxseq limit of $maxseq: stopping early\n";
+										$quiet or $subset or warn "Reached maxseq limit of $maxseq: stopping early\n";   #Message confusing in --subset mode, do don't display
 										last;
 								}
 
