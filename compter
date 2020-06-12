@@ -282,7 +282,7 @@ pheatmap(compter.data,
          annotation=group.annotation,
          show_colnames=FALSE,
          main=file,
-				 cluster_cols=$nogroup,
+		 cluster_cols=$nogroup,
          breaks=seq(from=min.value,to=max.value,length.out=50),
          color=colorRampPalette(c("magenta","white","green"))(50),
          border.color = NA)
@@ -846,8 +846,10 @@ OPTIONS
                    loads of sequences into this analysis as the graphs will not
                    scale to very large sequence numbers.  Default 1000.
 
--n --nograph       Skip the drawing of the heatmap and just calculate the table
+--nograph          Skip the drawing of the heatmap and just calculate the table
                    of results.
+
+--nogroup          Do not cluster heatmap columns.
 
 -o --outfile       [Required] The name of the file to write the text 
                    based output to. If graphical output is produced then
